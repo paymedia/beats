@@ -18,10 +18,8 @@
 # visit the documentation for the complete details of each option.
 # https://go.es.io/WinlogbeatConfig
 winlogbeat.event_logs:
-  - name: Application
-    ignore_older: 72h
-  - name: Security
-  - name: System
+  - name: PayMedia
+    parse_message_json: true
 
 #==================== Elasticsearch template setting ==========================
 
@@ -68,7 +66,7 @@ setup.kibana:
   # Scheme and port can be left out and will be set to the default (http and 5601)
   # In case you specify and additional path, the scheme is required: http://localhost:5601/path
   # IPv6 addresses should always be defined as: https://[2001:db8::1]:5601
-  #host: "localhost:5601"
+  host: "localhost:5601"
 
 #============================= Elastic Cloud ==================================
 
@@ -115,10 +113,13 @@ output.elasticsearch:
 #================================ Logging =====================================
 
 # Sets log level. The default log level is info.
-# Available log levels are: critical, error, warning, info, debug
+# Available log levels are: error, warning, info, debug
 #logging.level: debug
 
 # At debug level, you can selectively enable logging only for some components.
 # To enable all selectors use ["*"]. Examples of other selectors are "beat",
 # "publish", "service".
-#logging.selectors: ["*"]
+logging.selectors: ["*"]
+logging.to_files: true
+logging.to_syslog: false
+logging.metrics.enabled: false

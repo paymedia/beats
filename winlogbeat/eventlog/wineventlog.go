@@ -28,12 +28,13 @@ const (
 )
 
 var winEventLogConfigKeys = append(commonConfigKeys, "batch_read_size",
-	"ignore_older", "include_xml", "event_id", "forwarded", "level", "provider")
+	"ignore_older", "include_xml", "event_id", "forwarded", "level", "provider", "parse_message_json")
 
 type winEventLogConfig struct {
 	ConfigCommon  `config:",inline"`
 	BatchReadSize int   `config:"batch_read_size"` // Maximum number of events that Read will return.
 	IncludeXML    bool  `config:"include_xml"`
+	ParseMsgJSON  bool  `config:"parse_message_json"`
 	Forwarded     *bool `config:"forwarded"`
 	SimpleQuery   query `config:",inline"`
 }
@@ -231,6 +232,10 @@ func (l *winEventLog) buildRecordFromXML(x []byte, recoveredErr error) (Record, 
 
 	if l.config.IncludeXML {
 		r.XML = string(x)
+	}
+
+	if l.config.ParseMsgJSON {
+		r.MessageJSON = r.Message
 	}
 
 	return r, nil
