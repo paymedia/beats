@@ -29,3 +29,4 @@ beat.db
 *.test
 *.prof
 *.pyc
+debug
