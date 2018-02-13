@@ -1,6 +1,7 @@
 package eventlog
 
 import (
+	"encoding/json"
 	"expvar"
 	"fmt"
 	"reflect"
@@ -56,8 +57,9 @@ type EventLog interface {
 // Record represents a single event from the log.
 type Record struct {
 	sys.Event
-	API string // The event log API type used to read the record.
-	XML string // XML representation of the event.
+	API         string // The event log API type used to read the record.
+	XML         string // XML representation of the event.
+	MessageJSON string // Message data that we will attempt to parse into JSON
 }
 
 // ToMapStr returns a new MapStr containing the data from this Record.
@@ -78,7 +80,20 @@ func (e Record) ToEvent() beat.Event {
 	addOptional(m, "task", e.Task)
 	addOptional(m, "opcode", e.Opcode)
 	addOptional(m, "keywords", e.Keywords)
-	addOptional(m, "message", sys.RemoveWindowsLineEndings(e.Message))
+
+	if e.MessageJSON != "" {
+		msgBytes := []byte(e.MessageJSON)
+		var iccDat map[string]interface{}
+
+		if err := json.Unmarshal(msgBytes, &iccDat); err != nil {
+			addOptional(m, "message", sys.RemoveWindowsLineEndings(e.Message))
+		} else {
+			addOptional(m, "message_data", iccDat)
+		}
+	} else {
+		addOptional(m, "message", sys.RemoveWindowsLineEndings(e.Message))
+	}
+
 	addOptional(m, "message_error", e.RenderErr)
 
 	// Correlation
@@ -105,7 +120,6 @@ func (e Record) ToEvent() beat.Event {
 		addOptional(user, "type", e.User.Type.String())
 	}
 
-	addPairs(m, "event_data", e.EventData.Pairs)
 	userData := addPairs(m, "user_data", e.UserData.Pairs)
 	addOptional(userData, "xml_name", e.UserData.Name.Local)
 
